@@ -1,0 +1,17 @@
+{
+  "dataset": "ai4bharat/MSMARCO-XI",
+  "split": "validation",
+  "languages": [
+    "hin_Deva"
+  ],
+  "queries_per_language": 300,
+  "include_translations": true,
+  "passages": 5979,
+  "passages_by_lang": {
+    "eng_Latn": 2990,
+    "hin_Deva": 2989
+  },
+  "eval_queries": 155,
+  "ingested_at": "2026-08-17T18:24:13Z",
+  "ingest_seconds": 62.1
+}

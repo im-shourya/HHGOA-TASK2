@@ -1,0 +1,58 @@
+# Render blueprint: one Docker web service, no database, no second static site.
+#
+#   render.com -> New -> Blueprint -> point at this repo.
+#
+# The image builds the UI and the index at build time (see Dockerfile), so the
+# service needs no build command, no disk, and no post-deploy step. Everything
+# below is either a real default or a secret left unset on purpose.
+services:
+  - type: web
+    name: voice-rag-msmarco-xi
+    # `docker` = build the image from a Dockerfile in this repo. NOT `image`,
+    # which means "pull a prebuilt image from a registry", requires an `image:`
+    # block instead of dockerfilePath, and silently ignores autoDeployTrigger.
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # `starter` is paid. `free` also works and is the same image, but Render stops
+    # a free instance after ~15 minutes idle and the next visitor waits for a cold
+    # start — which for a demo whose whole point is a latency number is the wrong
+    # first impression. Change this one word to `free` to trade that for $0.
+    plan: starter
+    region: singapore # closest to the dataset's users; latency here is the point
+    # /api/ready, not /api/health: health always answers 200 so the UI can show what
+    # is wrong, while ready answers 503 until the index loads. Pointing the gate at
+    # health would promote a deploy whose every /api/ask returns 503.
+    healthCheckPath: /api/ready
+    autoDeployTrigger: commit
+    envVars:
+      # --- Speech-to-text. Set at least one in the Render dashboard, or the UI
+      #     falls back to browser-side Web Speech and says so in /api/config.
+      - key: SARVAM_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: STT_PROVIDER
+        value: auto
+
+      # --- Optional LLM answer mode. Without a key the extractive composer runs,
+      #     which is the path the latency numbers describe anyway.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GENERATION_MODE
+        value: extractive
+
+      # --- Budgets and the measured guardrail threshold. 0.67 comes from the
+      #     calibration in reports/benchmark.md, not from taste.
+      - key: CORE_BUDGET_MS
+        value: "200"
+      - key: RETRIEVAL_BUDGET_MS
+        value: "50"
+      - key: MIN_RETRIEVAL_SCORE
+        value: "0.67"
+
+      - key: LOG_LEVEL
+        value: INFO
+      # The UI is served from this same origin, so no cross-origin access is needed.
+      - key: CORS_ORIGINS
+        value: https://voice-rag-msmarco-xi.onrender.com
