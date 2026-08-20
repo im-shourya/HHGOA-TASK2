@@ -1,10 +1,16 @@
+<p align="center">
+  <img src="logo/image.png" alt="3PIXLE Logo" width="300"/>
+</p>
+
 # Voice RAG over `ai4bharat/MSMARCO-XI`
+
+**Team: 3PIXLE**
 
 Voice → speech-to-text → hybrid retrieval → grounded answer, with the whole core path
 measured at **P50 7.87 ms / P70 9.62 ms / P100 40.71 ms** against a 200 ms budget, and a
 system that declines rather than guesses when the corpus does not contain the answer.
 
-Built for HH Goa 2026 Shortlisting Task 2 · `#RAGInGoa`
+Built for HH Goa 2026 Shortlisting Task 2 by **Team 3PIXLE** · `#RAGInGoa`
 
 | | |
 | --- | --- |
