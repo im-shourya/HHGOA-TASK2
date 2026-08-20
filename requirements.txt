@@ -1,0 +1,25 @@
+# Runtime dependencies only — what the container needs to serve requests.
+# Ingestion, benchmarking and test tooling live in requirements-dev.txt so the
+# deployed image does not carry pyarrow (~40 MB) it will never import.
+#
+# model2vec's core install is numpy + tokenizers + safetensors; torch and
+# transformers are optional extras used only for *distilling* new models, which
+# is why static embeddings can fit a 512 MB container at all.
+
+# --- core API / harness ---
+fastapi==0.121.2
+uvicorn[standard]==0.40.0
+python-multipart==0.0.20
+httpx==0.28.1
+pydantic==2.13.4
+pydantic-settings==2.13.1
+
+# --- retrieval / embeddings ---
+numpy==2.5.2
+model2vec==0.9.0
+
+# --- LLM answer mode (optional at runtime; extractive mode needs no key) ---
+anthropic==0.75.0
+
+# --- optional: HNSW vector backend, only worth it past ~120k chunks ---
+# hnswlib==0.8.0
