@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+/* Design tokens. Dark-first: this is a telemetry surface, and the latency
+   waterfall reads better on a dark ground. */
+@theme {
+  --color-ink-950: #06070c;
+  --color-ink-900: #0b0d14;
+  --color-ink-850: #10131d;
+  --color-ink-800: #161a26;
+  --color-ink-700: #222839;
+  --color-ink-600: #333b52;
+  --color-ink-400: #6b7590;
+  --color-ink-300: #98a2bd;
+  --color-ink-200: #c3cadd;
+  --color-ink-100: #e6eaf4;
+
+  --color-brand-400: #7c9cff;
+  --color-brand-500: #5b7cfa;
+  --color-brand-600: #3f5ee0;
+
+  --color-good-400: #34d399;
+  --color-good-600: #059669;
+  --color-warn-400: #fbbf24;
+  --color-bad-400: #fb7185;
+  --color-bad-500: #f43f5e;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", "Noto Sans Devanagari", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo,
+    Consolas, monospace;
+}
+
+html,
+body {
+  background: var(--color-ink-950);
+  color: var(--color-ink-100);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle grid backdrop — cheap, no image request. */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(99, 122, 180, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 122, 180, 0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.card {
+  border: 1px solid var(--color-ink-700);
+  background: color-mix(in oklab, var(--color-ink-850) 88%, transparent);
+  border-radius: 0.875rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-ink-700);
+  padding: 0.05rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--color-ink-300);
+  white-space: nowrap;
+}
+
+/* Recording pulse on the mic button. */
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 18px rgba(244, 63, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
+  }
+}
+
+.recording {
+  animation: pulse-ring 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.bar-grow {
+  transform-origin: left;
+  animation: bar-grow 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+::selection {
+  background: var(--color-brand-600);
+  color: white;
+}
