@@ -1,39 +1,42 @@
 @import "tailwindcss";
 
-/* Design tokens. Dark-first: this is a telemetry surface, and the latency
-   waterfall reads better on a dark ground. */
 @theme {
-  --color-ink-950: #06070c;
-  --color-ink-900: #0b0d14;
-  --color-ink-850: #10131d;
-  --color-ink-800: #161a26;
-  --color-ink-700: #222839;
-  --color-ink-600: #333b52;
-  --color-ink-400: #6b7590;
-  --color-ink-300: #98a2bd;
-  --color-ink-200: #c3cadd;
-  --color-ink-100: #e6eaf4;
+  --color-goa-green: #156d43;
+  --color-goa-yellow: #ffe500;
+  --color-goa-pink: #ff007f;
+  --color-goa-cream: #f6f4e6;
+  --color-goa-dark: #0a3d24;
 
-  --color-brand-400: #7c9cff;
-  --color-brand-500: #5b7cfa;
-  --color-brand-600: #3f5ee0;
+  --color-ink-950: #0a3d24;
+  --color-ink-900: #104a2d;
+  --color-ink-850: #156d43;
+  --color-ink-800: #1c8251;
+  --color-ink-700: #249960;
+  --color-ink-600: #2cb371;
+  --color-ink-400: #f6f4e6;
+  --color-ink-300: #fbfbf4;
+  --color-ink-200: #ffffff;
+  --color-ink-100: #ffffff;
+
+  --color-brand-400: #ffe500;
+  --color-brand-500: #ffd700;
+  --color-brand-600: #ffc800;
 
   --color-good-400: #34d399;
   --color-good-600: #059669;
   --color-warn-400: #fbbf24;
-  --color-bad-400: #fb7185;
-  --color-bad-500: #f43f5e;
+  --color-bad-400: #ff007f;
+  --color-bad-500: #e60073;
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, "Noto Sans", "Noto Sans Devanagari", sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo,
-    Consolas, monospace;
+  --font-sans: var(--font-space-mono), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-space-mono), ui-monospace, monospace;
+  --font-display: var(--font-oswald), ui-sans-serif, system-ui, sans-serif;
 }
 
 html,
 body {
-  background: var(--color-ink-950);
-  color: var(--color-ink-100);
+  background: var(--color-goa-green);
+  color: var(--color-goa-cream);
 }
 
 body {
@@ -41,48 +44,96 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Subtle grid backdrop — cheap, no image request. */
+/* Base styles for the Goa aesthetic */
 .bg-grid {
-  background-image:
-    linear-gradient(to right, rgba(99, 122, 180, 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(99, 122, 180, 0.07) 1px, transparent 1px);
-  background-size: 44px 44px;
+  /* Removed grid, keeping it solid green */
+  background: var(--color-goa-green);
 }
 
 .card {
-  border: 1px solid var(--color-ink-700);
-  background: color-mix(in oklab, var(--color-ink-850) 88%, transparent);
-  border-radius: 0.875rem;
+  background: var(--color-goa-cream);
+  color: var(--color-goa-dark);
+  border: 2px solid var(--color-goa-dark);
+  border-radius: 0.5rem;
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.15);
+  transform: rotate(-1deg);
+  transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: rotate(0deg);
+}
+
+/* Style headers */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  text-transform: uppercase;
 }
 
 .tag {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
+  background: var(--color-goa-yellow);
+  color: var(--color-goa-dark);
+  border: 1px solid var(--color-goa-dark);
   border-radius: 9999px;
-  border: 1px solid var(--color-ink-700);
-  padding: 0.05rem 0.5rem;
+  padding: 0.15rem 0.6rem;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  color: var(--color-ink-300);
+  font-size: 0.75rem;
+  font-weight: 700;
   white-space: nowrap;
+  box-shadow: 2px 2px 0px rgba(0,0,0,0.2);
 }
 
-/* Recording pulse on the mic button. */
+.pin {
+  width: 16px;
+  height: 16px;
+  background: var(--color-goa-pink);
+  border-radius: 50%;
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 2px solid white;
+  box-shadow: 0px 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--color-goa-yellow);
+  color: var(--color-goa-dark);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  padding: 0.5rem 1.5rem;
+  border: 2px solid var(--color-goa-dark);
+  box-shadow: 4px 4px 0px var(--color-goa-pink);
+  text-transform: uppercase;
+  transition: all 0.1s;
+}
+
+.btn-primary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--color-goa-pink);
+}
+
+/* Recording pulse on the mic button, updated to pink */
 @keyframes pulse-ring {
   0% {
-    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.5);
+    box-shadow: 0 0 0 0 rgba(255, 0, 127, 0.6);
   }
   70% {
-    box-shadow: 0 0 0 18px rgba(244, 63, 94, 0);
+    box-shadow: 0 0 0 18px rgba(255, 0, 127, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
+    box-shadow: 0 0 0 0 rgba(255, 0, 127, 0);
   }
 }
 
 .recording {
   animation: pulse-ring 1.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: var(--color-goa-pink) !important;
+  color: white !important;
 }
 
 @keyframes bar-grow {
@@ -100,6 +151,6 @@ body {
 }
 
 ::selection {
-  background: var(--color-brand-600);
+  background: var(--color-goa-pink);
   color: white;
 }

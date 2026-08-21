@@ -14,21 +14,22 @@ export function AnswerCard({ response }: { response: AskResponse }) {
   const answered = response.verdict === "answered";
 
   return (
-    <section className="card p-5 sm:p-6">
+    <section className="card p-5 sm:p-8 relative mt-6">
+      <div className="pin"></div>
       <header className="flex flex-wrap items-center gap-3">
         <span
-          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${verdict.className}`}
+          className={`inline-flex items-center gap-2 rounded-full border-2 px-3 py-1 text-xs font-bold font-mono uppercase shadow-[2px_2px_0px_rgba(0,0,0,0.2)] ${verdict.className}`}
         >
-          <span className={`h-1.5 w-1.5 rounded-full ${verdict.dot}`} />
+          <span className={`h-2 w-2 rounded-full border border-current ${verdict.dot}`} />
           {verdict.label}
         </span>
-        <span className="text-ink-400 text-xs">{verdict.blurb}</span>
-        <span className="ml-auto flex items-center gap-2">
+        <span className="text-goa-dark/70 font-bold font-mono text-xs">{verdict.blurb}</span>
+        <span className="ml-auto flex flex-wrap items-center gap-2">
           <span className="tag">
             core{" "}
             <b
               className={
-                response.trace.within_budget ? "text-good-400" : "text-bad-400"
+                response.trace.within_budget ? "text-goa-green" : "text-goa-pink"
               }
             >
               {ms(response.core_latency_ms)}
@@ -36,7 +37,7 @@ export function AnswerCard({ response }: { response: AskResponse }) {
           </span>
           {response.stt_latency_ms !== null && (
             <span className="tag">
-              stt <b className="text-fuchsia-300">{ms(response.stt_latency_ms)}</b>
+              stt <b className="text-goa-pink">{ms(response.stt_latency_ms)}</b>
             </span>
           )}
           <span className="tag">{response.generation_mode}</span>
@@ -44,11 +45,11 @@ export function AnswerCard({ response }: { response: AskResponse }) {
       </header>
 
       {response.transcript && (
-        <p className="text-ink-300 mt-4 text-sm">
-          <span className="text-ink-500 font-mono text-xs uppercase">
+        <p className="text-goa-dark/80 mt-5 text-sm font-medium">
+          <span className="text-goa-dark/50 font-mono font-bold text-xs uppercase bg-goa-yellow/20 px-1 rounded">
             heard
           </span>{" "}
-          <span className="text-ink-100">&ldquo;{response.transcript}&rdquo;</span>
+          <span className="text-goa-dark italic font-mono">&ldquo;{response.transcript}&rdquo;</span>
           {response.detected_language && (
             <span className="tag ml-2">{response.detected_language}</span>
           )}
@@ -56,20 +57,20 @@ export function AnswerCard({ response }: { response: AskResponse }) {
       )}
 
       <p
-        className={`mt-4 text-lg leading-relaxed ${
-          answered ? "text-ink-100" : "text-ink-200"
+        className={`mt-6 text-xl leading-relaxed font-sans font-bold ${
+          answered ? "text-goa-dark" : "text-goa-dark/60"
         }`}
       >
         {response.answer}
       </p>
 
       {answered && (
-        <div className="border-ink-700 mt-5 flex flex-wrap items-center gap-3 border-t pt-4 text-xs">
+        <div className="border-goa-dark/20 mt-6 flex flex-wrap items-center gap-3 border-t-2 pt-4 text-xs font-bold">
           <span className="tag">
             grounding{" "}
             <b
               className={
-                grounding.score >= 0.75 ? "text-good-400" : "text-warn-400"
+                grounding.score >= 0.75 ? "text-goa-green" : "text-goa-pink"
               }
             >
               {pct(grounding.score)}
@@ -83,7 +84,7 @@ export function AnswerCard({ response }: { response: AskResponse }) {
             citations {grounding.citations_valid ? "valid" : "invalid"}
           </span>
           {grounding.unsupported_numbers.length > 0 && (
-            <span className="tag text-bad-400">
+            <span className="tag bg-goa-pink text-white border-goa-pink shadow-none">
               stray numbers: {grounding.unsupported_numbers.join(", ")}
             </span>
           )}
@@ -91,26 +92,26 @@ export function AnswerCard({ response }: { response: AskResponse }) {
       )}
 
       {response.citations.length > 0 && (
-        <ol className="mt-4 space-y-2">
+        <ol className="mt-6 space-y-3">
           {response.citations.map((citation) => (
             <li
               key={`${citation.marker}-${citation.chunk_id}`}
-              className="border-ink-700 bg-ink-900/60 rounded-lg border p-3 text-sm"
+              className="border-goa-dark/30 bg-black/5 rounded-lg border-2 p-4 text-sm shadow-inner"
             >
-              <div className="flex items-center gap-2">
-                <span className="bg-brand-600/20 text-brand-400 border-brand-600/40 rounded border px-1.5 font-mono text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="bg-goa-yellow text-goa-dark border-goa-dark rounded border-2 px-2 py-0.5 font-mono text-xs font-bold shadow-[2px_2px_0px_#0a3d24]">
                   {citation.marker}
                 </span>
                 {citation.strategies.map((strategy) => (
-                  <span key={strategy} className="tag">
+                  <span key={strategy} className="tag !text-[0.6rem] !py-0 !shadow-none">
                     {strategy}
                   </span>
                 ))}
-                <span className="tag ml-auto">
+                <span className="tag ml-auto !bg-white">
                   score {citation.score.toFixed(3)}
                 </span>
               </div>
-              <p className="text-ink-300 mt-2 leading-relaxed">
+              <p className="text-goa-dark/90 mt-3 leading-relaxed font-medium">
                 {citation.quote}
               </p>
             </li>
@@ -119,7 +120,7 @@ export function AnswerCard({ response }: { response: AskResponse }) {
       )}
 
       {response.warnings.length > 0 && (
-        <ul className="text-warn-400 mt-4 space-y-1 text-xs">
+        <ul className="text-goa-pink font-bold mt-5 space-y-1 text-sm font-mono">
           {response.warnings.map((warning) => (
             <li key={warning}>⚠ {warning}</li>
           ))}

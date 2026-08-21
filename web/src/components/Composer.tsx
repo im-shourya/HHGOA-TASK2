@@ -67,40 +67,40 @@ export function Composer({
   const error = activeRoute === "server" ? recorder.error : speech.error;
 
   return (
-    <section className="card p-4 sm:p-5">
-      <div className="flex items-start gap-4">
+    <section className="card p-4 sm:p-5 mb-6">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-4">
         <button
           type="button"
           onClick={toggleVoice}
           disabled={busy && !recording}
           aria-label={recording ? "Stop recording" : "Start recording"}
           aria-pressed={recording}
-          className={`relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full border transition ${
+          className={`relative flex h-16 w-16 mx-auto sm:mx-0 shrink-0 items-center justify-center rounded-full border-2 transition shadow-[4px_4px_0px_rgba(0,0,0,0.15)] ${
             recording
-              ? "recording border-bad-500 bg-bad-500/20 text-bad-400"
-              : "border-brand-500/60 bg-brand-600/15 text-brand-400 hover:bg-brand-600/25"
+              ? "recording border-white text-white"
+              : "border-goa-dark bg-goa-pink text-white hover:bg-goa-pink/90"
           } disabled:cursor-not-allowed disabled:opacity-40`}
         >
           {recording ? (
-            <span className="bg-bad-400 h-4 w-4 rounded-sm" />
+            <span className="bg-white h-4 w-4 rounded-sm" />
           ) : (
             <MicIcon />
           )}
           {recording && activeRoute === "server" && (
             <span
-              className="border-bad-400/70 absolute inset-0 rounded-full border"
+              className="border-white/70 absolute inset-0 rounded-full border-2"
               style={{ transform: `scale(${1 + recorder.level * 0.35})` }}
             />
           )}
         </button>
 
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 flex flex-col">
           <label htmlFor="query" className="sr-only">
             Ask a question
           </label>
           <textarea
             id="query"
-            rows={2}
+            rows={3}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event) => {
@@ -114,17 +114,17 @@ export function Composer({
                 ? "Listening…"
                 : "Ask about the indexed passages — or hold the mic and speak (English / हिन्दी)"
             }
-            className="border-ink-700 bg-ink-900 text-ink-100 placeholder:text-ink-500 focus:border-brand-500 w-full resize-none rounded-lg border px-3 py-2 text-sm outline-none"
+            className="border-goa-dark bg-white text-goa-dark placeholder:text-goa-dark/40 focus:border-goa-pink focus:ring-1 focus:ring-goa-pink w-full resize-none rounded-lg border-2 px-3 py-2 text-base font-medium outline-none shadow-inner"
           />
           {speech.interim && (
-            <p className="text-ink-400 mt-1 text-xs italic">{speech.interim}</p>
+            <p className="text-goa-dark/60 mt-1 text-xs italic font-mono">{speech.interim}</p>
           )}
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
             <select
               value={language}
               onChange={(event) => onLanguageChange(event.target.value)}
               aria-label="Question language"
-              className="border-ink-700 bg-ink-900 text-ink-200 rounded-md border px-2 py-1"
+              className="border-goa-dark bg-goa-yellow text-goa-dark font-bold font-mono rounded border-2 px-2 py-1 shadow-[2px_2px_0px_#0a3d24] outline-none cursor-pointer"
             >
               {(config?.languages ?? [{ flores: "eng_Latn", bcp47: "en-IN", label: "English" }]).map(
                 (entry) => (
@@ -135,7 +135,7 @@ export function Composer({
               )}
             </select>
 
-            <div className="border-ink-700 flex overflow-hidden rounded-md border">
+            <div className="border-goa-dark flex overflow-hidden rounded border-2 shadow-[2px_2px_0px_#0a3d24]">
               {(["server", "browser"] as const).map((option) => (
                 <button
                   key={option}
@@ -149,11 +149,11 @@ export function Composer({
                         : "No provider key configured on the server"
                       : "Transcribe locally with the Web Speech API"
                   }
-                  className={`px-2 py-1 font-mono ${
+                  className={`px-3 py-1 font-mono font-bold border-r border-goa-dark last:border-r-0 ${
                     activeRoute === option
-                      ? "bg-brand-600/25 text-brand-400"
-                      : "text-ink-400 hover:text-ink-200"
-                  } disabled:cursor-not-allowed disabled:opacity-40`}
+                      ? "bg-goa-pink text-white"
+                      : "bg-white text-goa-dark hover:bg-goa-cream"
+                  } disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400`}
                 >
                   {option === "server"
                     ? config?.stt_providers[0] ?? "provider"
@@ -162,7 +162,7 @@ export function Composer({
               ))}
             </div>
 
-            <div className="border-ink-700 flex overflow-hidden rounded-md border">
+            <div className="border-goa-dark flex overflow-hidden rounded border-2 shadow-[2px_2px_0px_#0a3d24]">
               {(["extractive", "llm"] as const).map((option) => (
                 <button
                   key={option}
@@ -176,11 +176,11 @@ export function Composer({
                         ? "Claude with forced structured output — exceeds the budget by design"
                         : "No ANTHROPIC_API_KEY configured"
                   }
-                  className={`px-2 py-1 font-mono ${
+                  className={`px-3 py-1 font-mono font-bold border-r border-goa-dark last:border-r-0 ${
                     mode === option
-                      ? "bg-brand-600/25 text-brand-400"
-                      : "text-ink-400 hover:text-ink-200"
-                  } disabled:cursor-not-allowed disabled:opacity-40`}
+                      ? "bg-goa-pink text-white"
+                      : "bg-white text-goa-dark hover:bg-goa-cream"
+                  } disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400`}
                 >
                   {option}
                 </button>
@@ -188,7 +188,7 @@ export function Composer({
             </div>
 
             {recorder.state === "recording" && (
-              <span className="text-bad-400 font-mono">
+              <span className="text-goa-pink font-bold font-mono">
                 ● {recorder.seconds}s — tap to send
               </span>
             )}
@@ -197,12 +197,12 @@ export function Composer({
               type="button"
               onClick={submit}
               disabled={busy || draft.trim().length === 0}
-              className="bg-brand-600 hover:bg-brand-500 ml-auto rounded-md px-3 py-1.5 font-medium text-white disabled:cursor-not-allowed disabled:opacity-40"
+              className="btn-primary ml-auto mt-2 sm:mt-0 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy ? "Thinking…" : "Ask"}
             </button>
           </div>
-          {error && <p className="text-bad-400 mt-2 text-xs">{error}</p>}
+          {error && <p className="text-goa-pink mt-2 text-xs font-bold">{error}</p>}
         </div>
       </div>
     </section>

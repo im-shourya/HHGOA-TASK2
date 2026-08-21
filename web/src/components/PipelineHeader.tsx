@@ -1,6 +1,7 @@
 "use client";
 
 import type { Health } from "@/lib/types";
+import Image from "next/image";
 
 const STAGES = [
   { label: "Voice", detail: "MediaRecorder / Opus" },
@@ -14,40 +15,38 @@ const STAGES = [
 /** Header: what this is, and what the running instance actually has loaded. */
 export function PipelineHeader({ health }: { health: Health | null }) {
   return (
-    <header className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Voice RAG over{" "}
-            <span className="text-brand-400">MSMARCO-XI</span>
-          </h1>
-          <p className="text-ink-400 mt-1 max-w-2xl text-sm">
-            Speak or type a question in English or Hindi. The core path — guardrails,
-            hybrid retrieval, answer composition and grounding verification — is
-            budgeted at 200 ms and measured on every request.
-          </p>
+    <header className="space-y-6">
+      <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-6 pb-4 border-b-2 border-goa-dark/20">
+        <div className="flex flex-col sm:flex-row items-center gap-6">
+          <Image
+            src="/logo.png"
+            alt="Team Logo"
+            width={120}
+            height={120}
+            className="rounded-xl border-2 border-goa-dark shadow-[4px_4px_0px_#ffe500]"
+          />
+          <div className="text-center sm:text-left">
+            <h1 className="text-4xl sm:text-5xl font-bold text-goa-yellow drop-shadow-[2px_2px_0px_#0a3d24]">
+              HACKER HOUSE <span className="text-goa-pink font-sans">गोवा</span>
+            </h1>
+            <p className="text-goa-cream mt-2 max-w-xl text-lg font-mono">
+              Voice RAG over MSMARCO-XI.
+            </p>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex flex-wrap justify-center md:justify-end items-center gap-2">
           {health ? (
             <>
               <span className="tag">
                 <span
-                  className={`mr-1 h-1.5 w-1.5 rounded-full ${
-                    health.index_loaded ? "bg-good-400" : "bg-bad-400"
+                  className={`mr-1.5 h-2 w-2 rounded-full border border-goa-dark ${
+                    health.index_loaded ? "bg-goa-green" : "bg-goa-pink"
                   }`}
                 />
                 {health.status}
               </span>
-              <span className="tag">
-                {health.chunks.toLocaleString()} chunks
-              </span>
-              <span className="tag">
-                {health.passages.toLocaleString()} passages
-              </span>
+              <span className="tag">{health.chunks.toLocaleString()} chunks</span>
               <span className="tag">{health.vector_backend}</span>
-              <span className="tag">
-                {health.embedding_model.split("/").pop()}
-              </span>
               <span className="tag">
                 stt: {health.stt_providers.join(", ") || "browser only"}
               </span>
@@ -58,17 +57,18 @@ export function PipelineHeader({ health }: { health: Health | null }) {
         </div>
       </div>
 
-      <ol className="flex flex-wrap items-stretch gap-1.5">
+      <ol className="flex flex-wrap justify-center sm:justify-start items-stretch gap-2">
         {STAGES.map((stage, index) => (
           <li
             key={stage.label}
-            className="border-ink-700 bg-ink-850/70 flex-1 rounded-lg border px-3 py-2"
+            className="card flex-1 min-w-[120px] p-3 text-center sm:text-left relative"
           >
-            <div className="text-ink-500 font-mono text-[0.6rem]">
+            <div className="pin hidden sm:block"></div>
+            <div className="text-goa-pink font-mono text-[0.75rem] font-bold">
               0{index + 1}
             </div>
-            <div className="text-ink-100 text-xs font-medium">{stage.label}</div>
-            <div className="text-ink-500 text-[0.65rem] leading-tight">
+            <div className="text-goa-dark text-sm font-bold uppercase font-display tracking-wide">{stage.label}</div>
+            <div className="text-goa-dark/70 text-[0.65rem] font-mono leading-tight mt-1">
               {stage.detail}
             </div>
           </li>
