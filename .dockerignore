@@ -1,0 +1,43 @@
+# Keep the build context small and the image reproducible.
+
+# Never ship derived data: the index is rebuilt inside the image from the
+# committed corpus, so a stale local copy must not leak in and shadow it.
+data/index/
+data/index-*/
+data/raw/
+data/cache/
+*.parquet
+
+# Node/Next artifacts — stage 1 installs and builds these itself. Copying a
+# host node_modules would also drop native binaries for the wrong platform in.
+web/node_modules/
+web/.next/
+web/out/
+web/.turbo/
+
+# Local Python state
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# Secrets and local config: the container reads configuration from the
+# environment, never from a baked-in .env.
+.env
+.env.*
+!.env.example
+
+# Repo furniture with no runtime role
+.git/
+.github/
+.claude/
+tests/
+reports/raw/
+*.md
+!reports/*.md
+.gitignore
+.dockerignore
