@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo/image.png" alt="3PIXLE Logo" width="300"/>
+  <img src="logo/Hacker house.png" alt="Hacker House Goa Logo" width="500"/>
 </p>
 
 # Voice RAG over `ai4bharat/MSMARCO-XI`
