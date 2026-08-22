@@ -64,6 +64,20 @@ export function AnswerCard({ response }: { response: AskResponse }) {
         {response.answer}
       </p>
 
+      {(() => {
+        const genSpan = response.trace.spans.find((s) => s.name === "generate");
+        const reasoning = genSpan?.detail?.reasoning as string | undefined;
+        if (!reasoning) return null;
+        return (
+          <details className="mt-4 text-xs font-mono bg-goa-dark/10 p-3 rounded-lg text-goa-dark/80">
+            <summary className="cursor-pointer font-bold select-none text-goa-dark">
+              DeepSeek Reasoning Trace
+            </summary>
+            <div className="mt-2 whitespace-pre-wrap">{reasoning}</div>
+          </details>
+        );
+      })()}
+
       {answered && (
         <div className="border-goa-dark/20 mt-6 flex flex-wrap items-center gap-3 border-t-2 pt-4 text-xs font-bold">
           <span className="tag">
