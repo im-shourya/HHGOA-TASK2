@@ -46,19 +46,20 @@ const SHOULD_REFUSE: { query: string; why: string }[] = [
 
 export function SampleQueries({ onPick, disabled }: SampleQueriesProps) {
   return (
-    <section className="space-y-3">
+    <section className="card p-5 sm:p-6 relative mt-6 space-y-5">
+      <div className="pin"></div>
       <div>
-        <h2 className="text-ink-400 font-mono text-xs uppercase">
+        <h2 className="text-goa-dark font-display text-sm font-bold uppercase tracking-wider">
           In the index — should answer
         </h2>
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <div className="mt-2.5 flex flex-wrap gap-2">
           {ANSWERABLE.map((query) => (
             <button
               key={query}
               type="button"
               disabled={disabled}
               onClick={() => onPick(query)}
-              className="border-ink-700 bg-ink-850 text-ink-300 hover:border-brand-500/60 hover:text-ink-100 rounded-full border px-3 py-1 text-xs transition disabled:opacity-40"
+              className="bg-goa-yellow text-goa-dark border-2 border-goa-dark font-mono text-xs font-bold rounded-full px-3.5 py-1.5 shadow-[2px_2px_0px_rgba(10,61,36,0.3)] hover:shadow-[3px_3px_0px_#ff007f] hover:border-goa-dark hover:-translate-y-0.5 active:translate-y-0 transition cursor-pointer disabled:opacity-40"
             >
               {query}
             </button>
@@ -66,10 +67,10 @@ export function SampleQueries({ onPick, disabled }: SampleQueriesProps) {
         </div>
       </div>
       <div>
-        <h2 className="text-ink-400 font-mono text-xs uppercase">
+        <h2 className="text-goa-dark font-display text-sm font-bold uppercase tracking-wider">
           Should be refused — and by which guard
         </h2>
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <div className="mt-2.5 flex flex-wrap gap-2">
           {SHOULD_REFUSE.map((sample) => (
             <button
               key={sample.query}
@@ -77,10 +78,10 @@ export function SampleQueries({ onPick, disabled }: SampleQueriesProps) {
               disabled={disabled}
               onClick={() => onPick(sample.query)}
               title={sample.why}
-              className="border-ink-700 bg-ink-850 text-ink-400 hover:border-bad-500/60 hover:text-ink-100 rounded-full border px-3 py-1 text-xs transition disabled:opacity-40"
+              className="bg-white text-goa-dark border-2 border-goa-dark font-mono text-xs font-bold rounded-full px-3.5 py-1.5 shadow-[2px_2px_0px_rgba(10,61,36,0.2)] hover:shadow-[3px_3px_0px_#ff007f] hover:border-goa-pink hover:-translate-y-0.5 active:translate-y-0 transition cursor-pointer disabled:opacity-40"
             >
               {sample.query}
-              <span className="text-ink-500 ml-1.5 font-mono text-[0.6rem]">
+              <span className="ml-1.5 text-[0.65rem] font-bold text-goa-pink bg-goa-pink/10 px-1.5 py-0.5 rounded border border-goa-pink/30">
                 {sample.why}
               </span>
             </button>

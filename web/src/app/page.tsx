@@ -146,16 +146,27 @@ export default function Page() {
           </section>
         )}
 
-        <footer className="text-ink-500 border-ink-800 border-t pt-5 text-xs">
-          <p>
-            Corpus: ai4bharat/MSMARCO-XI (English passages + Hindi translations).
-            Answers are extracted verbatim from retrieved passages and verified
-            before display; when the evidence is thin the system declines instead of
-            guessing.
-          </p>
-          <p className="mt-1 font-mono">
-            #RAGInGoa · request ids are logged with PII redacted
-          </p>
+        <footer className="card p-4 sm:p-5 relative mt-8 text-xs">
+          <div className="pin"></div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <p className="text-goa-dark/85 font-medium leading-relaxed max-w-2xl">
+              <span className="font-bold text-goa-dark font-display uppercase tracking-wide mr-1">
+                Corpus:
+              </span>
+              ai4bharat/MSMARCO-XI (English passages + Hindi translations).
+              Answers are extracted verbatim from retrieved passages and verified
+              before display; when the evidence is thin the system declines instead of
+              guessing.
+            </p>
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <span className="tag !bg-goa-pink !text-white !border-goa-dark shadow-[2px_2px_0px_#0a3d24]">
+                #RAGInGoa
+              </span>
+              <span className="tag !bg-goa-yellow !text-goa-dark !border-goa-dark shadow-[2px_2px_0px_#0a3d24]">
+                PII redacted
+              </span>
+            </div>
+          </div>
         </footer>
       </div>
     </main>
