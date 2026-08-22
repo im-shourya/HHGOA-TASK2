@@ -1,23 +1,4 @@
-"""Optional LLM generator — Claude with forced structured output.
-
-This is the "bigger budget" path: it produces fluent prose instead of stitched
-sentences, at the cost of a network round trip (~0.6-1.2 s), so it is off by
-default and reported separately in the latency tables.
-
-Two things make it safe to hand a model the wheel:
-
-1. **Forced tool call.** The model cannot reply with free text — it must call
-   `emit_answer`, whose schema demands citation markers and carries an explicit
-   `grounded` flag plus a refusal reason. Parsing prose for "I don't know" is
-   replaced by reading a boolean.
-2. **The same output guard runs afterwards.** Structured output constrains the
-   shape of an answer, never its truth, so `guardrails.output_guard` still checks
-   every claim against the retrieved text before the answer leaves the process.
-
-Any failure — timeout, rate limit, malformed tool input, open circuit — raises
-`LLMUnavailable`, and the harness degrades to the extractive composer rather than
-failing the request.
-"""
+"""Optional LLM generator — Groq DeepSeek Reasoning with forced structured output."""
 
 from __future__ import annotations
 
@@ -44,34 +25,37 @@ Rules, in priority order:
 4. Answer in the language of the question. Keep it under 60 words, no preamble.
 5. Numbers, dates and names must be copied exactly as they appear in the context.
 
-You must respond by calling the emit_answer tool. Never reply with plain text."""
+You must respond by calling the emit_answer tool. Never reply with plain text (other than your reasoning process)."""
 
 ANSWER_TOOL: dict[str, Any] = {
-    "name": "emit_answer",
-    "description": "Return the grounded answer, or a refusal when the context is insufficient.",
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "answer": {
-                "type": "string",
-                "description": "The answer with inline [n] citations, or '' when refusing.",
+    "type": "function",
+    "function": {
+        "name": "emit_answer",
+        "description": "Return the grounded answer, or a refusal when the context is insufficient.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "type": "string",
+                    "description": "The answer with inline [n] citations, or '' when refusing.",
+                },
+                "citations": {
+                    "type": "array",
+                    "items": {"type": "integer"},
+                    "description": "Passage numbers actually used.",
+                },
+                "grounded": {
+                    "type": "boolean",
+                    "description": "True only if every claim is supported by the passages.",
+                },
+                "refusal_reason": {
+                    "type": "string",
+                    "description": "Why the question cannot be answered from the context.",
+                },
             },
-            "citations": {
-                "type": "array",
-                "items": {"type": "integer"},
-                "description": "Passage numbers actually used.",
-            },
-            "grounded": {
-                "type": "boolean",
-                "description": "True only if every claim is supported by the passages.",
-            },
-            "refusal_reason": {
-                "type": "string",
-                "description": "Why the question cannot be answered from the context.",
-            },
+            "required": ["answer", "citations", "grounded"],
         },
-        "required": ["answer", "citations", "grounded"],
-    },
+    }
 }
 
 
@@ -87,7 +71,7 @@ def build_prompt(query: str, contexts: Sequence[RetrievedChunk]) -> str:
     return "Context passages:\n" + "\n\n".join(blocks) + f"\n\nQuestion: {query}"
 
 
-class ClaudeGenerator:
+class GroqGenerator:
     """Thin, well-behaved wrapper: one call, one tool, explicit failure mode."""
 
     mode = "llm"
@@ -98,24 +82,23 @@ class ClaudeGenerator:
 
     @property
     def available(self) -> bool:
-        return bool(self.settings.anthropic_api_key)
+        return bool(self.settings.groq_api_key)
 
     def _get_client(self) -> Any:
         if self._client is None:
             if not self.available:
-                raise LLMUnavailable("no ANTHROPIC_API_KEY configured")
+                raise LLMUnavailable("no GROQ_API_KEY configured")
             try:
-                from anthropic import AsyncAnthropic
+                from groq import AsyncGroq
             except ImportError as exc:  # pragma: no cover - dependency is declared
-                raise LLMUnavailable(f"anthropic sdk missing: {exc}") from exc
+                raise LLMUnavailable(f"groq sdk missing: {exc}") from exc
+            
             kwargs: dict[str, Any] = {
-                "api_key": self.settings.anthropic_api_key,
+                "api_key": self.settings.groq_api_key,
                 "timeout": self.settings.llm_timeout_ms / 1000,
                 "max_retries": 0,  # the harness owns retry policy
             }
-            if self.settings.anthropic_base_url:
-                kwargs["base_url"] = self.settings.anthropic_base_url
-            self._client = AsyncAnthropic(**kwargs)
+            self._client = AsyncGroq(**kwargs)
         return self._client
 
     async def generate(
@@ -128,31 +111,51 @@ class ClaudeGenerator:
             raise LLMUnavailable("no contexts to ground on")
         client = self._get_client()
         try:
-            message = await client.messages.create(
+            message = await client.chat.completions.create(
                 model=self.settings.llm_model,
                 max_tokens=self.settings.llm_max_tokens,
-                system=SYSTEM_PROMPT,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": build_prompt(query, contexts)}
+                ],
                 tools=[ANSWER_TOOL],
-                tool_choice={"type": "tool", "name": "emit_answer"},
-                messages=[{"role": "user", "content": build_prompt(query, contexts)}],
+                tool_choice={"type": "function", "function": {"name": "emit_answer"}},
             )
         except Exception as exc:  # noqa: BLE001 - SDK raises a wide family of errors
             raise LLMUnavailable(f"{type(exc).__name__}: {exc}") from exc
 
         payload = self._extract_tool_input(message)
-        return self._to_draft(payload, contexts, intent, message)
+        
+        # Capture reasoning trace if available (DeepSeek)
+        reasoning = ""
+        choice = message.choices[0]
+        if hasattr(choice.message, "content") and choice.message.content:
+            reasoning = choice.message.content
+            
+        draft = self._to_draft(payload, contexts, intent, message)
+        
+        if reasoning:
+            # We can stash the reasoning in draft.detail so it shows up in trace
+            draft.detail["reasoning"] = reasoning[:500] + ("..." if len(reasoning) > 500 else "")
+            
+        return draft
 
     # ----------------------------------------------------------------- private
     @staticmethod
     def _extract_tool_input(message: Any) -> dict[str, Any]:
-        for block in getattr(message, "content", []) or []:
-            if getattr(block, "type", None) == "tool_use" and block.name == "emit_answer":
-                payload = block.input
-                if isinstance(payload, str):  # defensive: some proxies stringify input
-                    payload = json.loads(payload)
-                if not isinstance(payload, dict) or "answer" not in payload:
-                    raise LLMUnavailable(f"malformed tool input: {payload!r}")
-                return payload
+        choice = message.choices[0]
+        if choice.message.tool_calls:
+            for tool_call in choice.message.tool_calls:
+                if tool_call.function.name == "emit_answer":
+                    payload = tool_call.function.arguments
+                    if isinstance(payload, str):  # json string
+                        try:
+                            payload = json.loads(payload)
+                        except json.JSONDecodeError:
+                            raise LLMUnavailable(f"malformed json tool input: {payload!r}")
+                    if not isinstance(payload, dict) or "answer" not in payload:
+                        raise LLMUnavailable(f"malformed tool input: {payload!r}")
+                    return payload
         raise LLMUnavailable("model did not call emit_answer")
 
     @staticmethod
@@ -200,9 +203,8 @@ class ClaudeGenerator:
             detail={
                 "intent": intent.intent.value,
                 "model": str(getattr(message, "model", "")),
-                "input_tokens": int(getattr(usage, "input_tokens", 0) or 0),
-                "output_tokens": int(getattr(usage, "output_tokens", 0) or 0),
-                "stop_reason": str(getattr(message, "stop_reason", "")),
+                "input_tokens": int(getattr(usage, "prompt_tokens", 0) or 0),
+                "output_tokens": int(getattr(usage, "completion_tokens", 0) or 0),
+                "stop_reason": str(getattr(message.choices[0], "finish_reason", "")),
             },
         )
-

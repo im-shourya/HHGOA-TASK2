@@ -94,11 +94,10 @@ class Settings(BaseSettings):
 
     # ------------------------------------------------------------- generation
     generation_mode: Literal["extractive", "llm", "auto"] = "extractive"
-    llm_model: str = "claude-haiku-4-5-20251001"
-    llm_max_tokens: int = 400
-    llm_timeout_ms: int = 4_000
-    anthropic_api_key: str | None = None
-    anthropic_base_url: str | None = None
+    llm_model: str = "deepseek-r1-distill-llama-70b"
+    llm_max_tokens: int = 800
+    llm_timeout_ms: int = 15_000
+    groq_api_key: str | None = None
     answer_max_words: int = 70
 
     # ------------------------------------------------------------- guardrails

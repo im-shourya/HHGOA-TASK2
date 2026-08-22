@@ -2,11 +2,11 @@
 
 from app.generation.extractive import AnswerDraft, ExtractiveComposer
 from app.generation.intent import Intent, QueryIntent, classify
-from app.generation.llm import ClaudeGenerator, LLMUnavailable
+from app.generation.llm import GroqGenerator, LLMUnavailable
 
 __all__ = [
     "AnswerDraft",
-    "ClaudeGenerator",
+    "GroqGenerator",
     "ExtractiveComposer",
     "Intent",
     "LLMUnavailable",

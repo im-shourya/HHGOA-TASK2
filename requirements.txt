@@ -19,7 +19,7 @@ numpy==2.5.2
 model2vec==0.9.0
 
 # --- LLM answer mode (optional at runtime; extractive mode needs no key) ---
-anthropic==0.75.0
+groq
 
 # --- optional: HNSW vector backend, only worth it past ~120k chunks ---
 # hnswlib==0.8.0

@@ -30,7 +30,7 @@ import numpy as np
 from app.config import Settings, get_settings
 from app.generation.extractive import AnswerDraft, ExtractiveComposer
 from app.generation.intent import classify
-from app.generation.llm import ClaudeGenerator, LLMUnavailable
+from app.generation.llm import GroqGenerator, LLMUnavailable
 from app.guardrails.input_guard import InputGuard
 from app.guardrails.output_guard import OutputGuard
 from app.guardrails.policies import NO_CONTEXT_MESSAGE
@@ -82,7 +82,7 @@ class RagPipeline:
         self.composer = ExtractiveComposer(
             self.embedder, max_words=self.settings.answer_max_words
         )
-        self.llm = ClaudeGenerator(self.settings)
+        self.llm = GroqGenerator(self.settings)
         self.input_guard = InputGuard(
             min_chars=self.settings.min_query_chars, max_chars=self.settings.max_query_chars
         )
