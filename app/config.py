@@ -17,6 +17,25 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
 
+# `Settings` below reads `.env` through pydantic-settings, which populates the
+# model but deliberately does NOT touch os.environ. That is the right default
+# for this app — nothing here reads os.environ for a secret — but it means any
+# *other* tool that reads os.environ cannot see keys kept in `.env`.
+#
+# The eval harness (`eval/judge.py`) is exactly that case: it imports this module
+# specifically for a load_dotenv() side effect, then looks up its judge
+# credential in os.environ. Without this call, a key sitting in `.env` is
+# invisible to it and the judge-based checks report SKIPPED.
+#
+# `override=False` so a variable already exported in the shell always wins over
+# the file — the usual precedence, and it keeps CI/container env vars authoritative.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(REPO_ROOT / ".env", override=False)
+except ImportError:  # python-dotenv is a dev/eval dependency, not a runtime one
+    pass
+
 # Retrieval-only sub-budget, in milliseconds: query embedding + vector search +
 # sparse search + fusion. Read as a module constant (not a Settings field) because
 # the reference harness shipped with the task imports it directly:

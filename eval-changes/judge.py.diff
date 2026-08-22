@@ -1,0 +1,231 @@
+--- /private/tmp/claude-501/-Users-ayush-Desktop-HH-Goa-Task-2/6184193f-8ee3-486f-abce-07315d740054/scratchpad/judge.py.orig	2026-08-22 03:17:21
++++ eval/judge.py	2026-08-22 03:49:19
+@@ -68,6 +68,7 @@
+ """
+ import json
+ import os
++import re  # LOCAL ADDITION: parsing retry-after hints out of 429 messages
+ import time
+ from dataclasses import dataclass
+ 
+@@ -76,6 +77,53 @@
+ JUDGE_MODEL_OPENAI = os.environ.get("EVAL_JUDGE_MODEL_OPENAI", "gpt-5.4-mini")
+ JUDGE_MODEL_ANTHROPIC = os.environ.get("EVAL_JUDGE_MODEL_ANTHROPIC", "claude-opus-5")
+ 
++# --- LOCAL ADDITION (not upstream): free-tier judge providers -------------
++# Neither an OpenAI nor an Anthropic key was available for this submission, and
++# both are paid. Gemini and Groq each expose an OpenAI-COMPATIBLE endpoint, so
++# they reuse `_call_openai` verbatim with a different base_url and key rather
++# than getting a hand-written client — the request/response shape, the JSON
++# contract, the parser and the fail-closed behaviour are all the already-tested
++# upstream path. Only the transport target changes.
++#
++#   EVAL_JUDGE_PROVIDER=gemini   needs GEMINI_API_KEY  (aistudio.google.com)
++#   EVAL_JUDGE_PROVIDER=groq     needs GROQ_API_KEY    (console.groq.com)
++#
++# Both are still real, independent LLM judges — separate from anything the
++# target system itself calls, which is the property eval/judge.py's docstring
++# actually requires (no self-judging bias).
++# Pinned to an explicit version rather than the floating `gemini-flash-latest`
++# alias: an eval number is only reproducible if the judge that produced it can be
++# named. (`gemini-2.0-flash` was retired and now 404s — override with
++# EVAL_JUDGE_MODEL_GEMINI if this one is retired in turn.)
++#
++# `-flash-lite` rather than `-flash` because of the FREE-TIER QUOTA, measured
++# against a real key: `gemini-3.6-flash` allows 5 requests/minute, which a
++# 50/50 run (~200 judge calls) exhausts almost immediately — every call past the
++# 5th in a minute 429s. `gemini-3.1-flash-lite` sustained 9 consecutive calls
++# with no throttling. A grading judge scoring short answers against an explicit
++# rubric is well within a lite model's ability; the quota is the binding
++# constraint here, not judge capability.
++JUDGE_MODEL_GEMINI = os.environ.get("EVAL_JUDGE_MODEL_GEMINI", "gemini-3.1-flash-lite")
++# `llama-3.3-70b-versatile` was the first choice here but is not available on a
++# current free Groq key (404 model_not_found). `openai/gpt-oss-120b` is, and is
++# the strongest general model on the free tier — measured 0.8s per judged
++# example against a real key.
++JUDGE_MODEL_GROQ = os.environ.get("EVAL_JUDGE_MODEL_GROQ", "openai/gpt-oss-120b")
++
++# provider -> (env var holding the key, OpenAI-compatible base URL, model)
++_OPENAI_COMPATIBLE: dict[str, tuple[str, str, str]] = {
++    "gemini": (
++        "GEMINI_API_KEY",
++        "https://generativelanguage.googleapis.com/v1beta/openai/",
++        JUDGE_MODEL_GEMINI,
++    ),
++    "groq": (
++        "GROQ_API_KEY",
++        "https://api.groq.com/openai/v1",
++        JUDGE_MODEL_GROQ,
++    ),
++}
++
+ _VERDICT_SCHEMA = {
+     "type": "object",
+     "properties": {
+@@ -88,6 +136,8 @@
+ 
+ _openai_client = None
+ _anthropic_client = None
++# LOCAL ADDITION: cached clients for the free-tier OpenAI-compatible providers.
++_compat_clients: dict = {}
+ 
+ 
+ class JudgeNotConfigured(RuntimeError):
+@@ -119,9 +169,25 @@
+         pass
+ 
+     forced = os.environ.get("EVAL_JUDGE_PROVIDER", "auto").lower()
+-    if forced not in ("openai", "anthropic", "auto"):
+-        raise JudgeNotConfigured(f'EVAL_JUDGE_PROVIDER={forced!r} is not "openai", "anthropic", or "auto".')
++    _valid = ("openai", "anthropic", "auto", *_OPENAI_COMPATIBLE)
++    if forced not in _valid:
++        raise JudgeNotConfigured(
++            f"EVAL_JUDGE_PROVIDER={forced!r} is not one of: {', '.join(_valid)}."
++        )
+ 
++    # LOCAL ADDITION: free-tier OpenAI-compatible providers. Checked before the
++    # paid ones under "auto" so that a machine with only a free key configured
++    # resolves to it, and an explicitly forced provider still wins outright.
++    for name, (env_var, _base_url, _model) in _OPENAI_COMPATIBLE.items():
++        if forced == name:
++            if not os.environ.get(env_var):
++                raise JudgeNotConfigured(
++                    f"EVAL_JUDGE_PROVIDER={name} needs {env_var} set in the environment."
++                )
++            return name
++        if forced == "auto" and os.environ.get(env_var):
++            return name
++
+     if forced in ("openai", "auto") and os.environ.get("OPENAI_API_KEY"):
+         return "openai"
+     if forced in ("anthropic", "auto") and (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
+@@ -134,7 +200,9 @@
+         # broad failure handling for the "truly nothing configured" case).
+         return "anthropic"
+     raise JudgeNotConfigured(
+-        "The judge needs a real LLM credential and found neither. Set one of:\n"
++        "The judge needs a real LLM credential and found none. Set one of:\n"
++        "  GEMINI_API_KEY      (free tier -- aistudio.google.com, EVAL_JUDGE_PROVIDER=gemini)\n"
++        "  GROQ_API_KEY        (free tier -- console.groq.com, EVAL_JUDGE_PROVIDER=groq)\n"
+         "  OPENAI_API_KEY      (loaded via the target project's .env, see eval/target.py)\n"
+         "  ANTHROPIC_API_KEY   (or ANTHROPIC_AUTH_TOKEN, or `ant auth login` -- see `ant auth status`)\n"
+         "...or set EVAL_JUDGE_PROVIDER=anthropic explicitly if you're using a credential source "
+@@ -142,8 +210,27 @@
+         "Judge-based checks (faithfulness, correctness) can't run without one; retrieval, "
+         "reliability, and latency checks don't need it."
+     )
++
++
++# LOCAL ADDITION: bounded retry for free-tier rate limits (see _call_openai).
++_RATE_LIMIT_ATTEMPTS = int(os.environ.get("EVAL_JUDGE_RATE_LIMIT_ATTEMPTS", 5))
++# Headroom for reasoning tokens ahead of the JSON verdict (see _call_openai).
++_MAX_COMPLETION_TOKENS = int(os.environ.get("EVAL_JUDGE_MAX_TOKENS", 800))
++
++
++def _retry_delay_s(error: Exception, attempt: int) -> float:
++    """Seconds to wait before retrying a 429.
+ 
++    Prefers the server's own "Please retry in 12.9s" hint when present — it
++    knows when the quota window actually resets, which a fixed backoff can only
++    guess at — and falls back to exponential backoff (2, 4, 8, 16s) otherwise.
++    """
++    match = re.search(r"retry in (\d+(?:\.\d+)?)s", str(error))
++    if match:
++        return min(float(match.group(1)) + 1.0, 65.0)
++    return float(2 ** (attempt + 1))
+ 
++
+ def _parse_verdict(raw: str) -> tuple[bool, str]:
+     try:
+         parsed = json.loads(raw)
+@@ -155,27 +242,67 @@
+         return False, f"[judge output did not parse as expected JSON: {raw[:200]!r}]"
+ 
+ 
+-def _call_openai(system_prompt: str, user_content: str) -> JudgeVerdict:
++def _call_openai(system_prompt: str, user_content: str, provider: str = "openai") -> JudgeVerdict:
+     global _openai_client
+     import openai
+ 
+-    if _openai_client is None:
+-        _openai_client = openai.OpenAI()
++    # LOCAL ADDITION: `provider` selects which OpenAI-compatible endpoint to
++    # talk to. "openai" keeps the upstream behaviour exactly (default base_url,
++    # OPENAI_API_KEY from the environment); a free-tier provider swaps the
++    # base_url, key and model. Clients are cached per provider so a run does not
++    # rebuild one per judged example.
++    if provider == "openai":
++        if _openai_client is None:
++            _openai_client = openai.OpenAI()
++        client, model = _openai_client, JUDGE_MODEL_OPENAI
++    else:
++        env_var, base_url, model = _OPENAI_COMPATIBLE[provider]
++        if provider not in _compat_clients:
++            _compat_clients[provider] = openai.OpenAI(
++                api_key=os.environ[env_var], base_url=base_url
++            )
++        client = _compat_clients[provider]
+ 
+     t0 = time.perf_counter()
+-    response = _openai_client.chat.completions.create(
+-        model=JUDGE_MODEL_OPENAI,
+-        max_completion_tokens=200,
+-        response_format={"type": "json_object"},
+-        messages=[
+-            {"role": "system", "content": system_prompt},
+-            {"role": "user", "content": user_content},
+-        ],
+-    )
++    # LOCAL ADDITION: retry on rate limits. The free tiers this path exists to
++    # support throttle aggressively (a real key measured 5 req/min on
++    # gemini-3.6-flash), and upstream lets a 429 propagate — which the checks
++    # count as an errored example, silently shrinking the sample the reported
++    # score is computed over. Honouring the server's own retry-after and backing
++    # off keeps the judged sample size equal to the requested one.
++    # Bounded: after _RATE_LIMIT_ATTEMPTS the error propagates as before.
++    last_error = None
++    for attempt in range(_RATE_LIMIT_ATTEMPTS):
++        try:
++            response = client.chat.completions.create(
++                model=model,
++                # LOCAL ADDITION: upstream's 200 is enough for a non-reasoning
++                # model, but the free-tier models this path targets emit thinking
++                # tokens before the JSON object. At 200 the response is truncated
++                # mid-reasoning and Groq rejects it with json_validate_failed —
++                # which looked like a prompt problem and was really a budget one.
++                # Only the ceiling changes; the verdict JSON itself is ~30 tokens.
++                max_completion_tokens=_MAX_COMPLETION_TOKENS,
++                response_format={"type": "json_object"},
++                messages=[
++                    {"role": "system", "content": system_prompt},
++                    {"role": "user", "content": user_content},
++                ],
++            )
++            break
++        except openai.RateLimitError as e:
++            last_error = e
++            if attempt == _RATE_LIMIT_ATTEMPTS - 1:
++                raise
++            time.sleep(_retry_delay_s(e, attempt))
++    else:  # pragma: no cover - loop always breaks or raises
++        raise last_error
+     judge_ms = (time.perf_counter() - t0) * 1000
+     raw = (response.choices[0].message.content or "").strip()
+     verdict, reason = _parse_verdict(raw)
+-    return JudgeVerdict(verdict=verdict, reason=reason, judge_ms=judge_ms, provider="openai", raw=raw)
++    # LOCAL ADDITION: report the actual provider, so the saved report says
++    # "gemini"/"groq" rather than mislabelling a free-tier run as "openai".
++    return JudgeVerdict(verdict=verdict, reason=reason, judge_ms=judge_ms, provider=provider, raw=raw)
+ 
+ 
+ def _call_anthropic(system_prompt: str, user_content: str) -> JudgeVerdict:
+@@ -223,7 +350,8 @@
+     provider = _resolve_provider()
+     if provider == "anthropic":
+         return _call_anthropic(system_prompt, user_content)
+-    return _call_openai(system_prompt, user_content)
++    # LOCAL ADDITION: gemini/groq share the OpenAI-compatible call path.
++    return _call_openai(system_prompt, user_content, provider=provider)
+ 
+ 
+ _FAITHFULNESS_SYSTEM = """You are a strict fact-checking judge for a retrieval-augmented \

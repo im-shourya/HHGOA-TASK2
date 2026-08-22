@@ -46,3 +46,10 @@ Thumbs.db
 # commits local settings. A fresh clone gets neither, so cover both here.
 .claude/settings.local.json
 .claude/*.tmp.*
+
+# --- Eval harness (BeaconBandhu/rag-local-eval-loop) ---
+# A local clone of the upstream tool, kept only to diff against; not ours to ship.
+rag-local-eval-loop/
+# Timestamped run outputs. The numbers that back a claim belong in reports/,
+# quoted deliberately, rather than as a directory of every run ever made.
+results/
