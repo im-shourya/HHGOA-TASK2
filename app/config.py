@@ -94,7 +94,7 @@ class Settings(BaseSettings):
 
     # ------------------------------------------------------------- generation
     generation_mode: Literal["extractive", "llm", "auto"] = "extractive"
-    llm_model: str = "llama-3.3-70b-versatile"
+    llm_model: str = "openai/gpt-oss-120b"
     llm_max_tokens: int = 800
     llm_timeout_ms: int = 15_000
     groq_api_key: str | None = None
