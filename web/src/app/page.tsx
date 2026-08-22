@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnswerCard } from "@/components/AnswerCard";
 import { Composer } from "@/components/Composer";
@@ -83,8 +84,30 @@ export default function Page() {
   );
 
   return (
-    <main className="bg-grid min-h-screen">
-      <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 sm:py-12">
+    <main className="bg-grid min-h-screen relative overflow-x-hidden">
+      {/* Decorative side palm trees */}
+      <div className="fixed left-0 bottom-0 top-0 w-36 sm:w-48 md:w-60 lg:w-72 xl:w-80 pointer-events-none z-0 select-none hidden sm:block opacity-90">
+        <Image
+          src="/tree_left.png"
+          alt=""
+          aria-hidden="true"
+          fill
+          className="object-contain object-left-bottom"
+          priority
+        />
+      </div>
+      <div className="fixed right-0 bottom-0 top-0 w-36 sm:w-48 md:w-60 lg:w-72 xl:w-80 pointer-events-none z-0 select-none hidden sm:block opacity-90">
+        <Image
+          src="/tree_right.png"
+          alt=""
+          aria-hidden="true"
+          fill
+          className="object-contain object-right-bottom"
+          priority
+        />
+      </div>
+
+      <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 sm:py-12 relative z-10">
         <PipelineHeader health={health} />
 
         <Composer

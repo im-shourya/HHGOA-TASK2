@@ -20,10 +20,11 @@ export function PipelineHeader({ health }: { health: Health | null }) {
         <div className="flex flex-col sm:flex-row items-center gap-6">
           <Image
             src="/logo.png"
-            alt="Team Logo"
-            width={120}
-            height={120}
-            className="rounded-xl border-2 border-goa-dark shadow-[4px_4px_0px_#ffe500]"
+            alt="3PIXLE Team Logo"
+            width={150}
+            height={100}
+            className="h-20 sm:h-24 w-auto rounded-xl border-2 border-goa-dark shadow-[4px_4px_0px_#ffe500] object-contain bg-white p-1"
+            priority
           />
           <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
             <h1 className="relative inline-flex items-center justify-center select-none mb-1">
