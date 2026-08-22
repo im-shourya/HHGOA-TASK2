@@ -14,7 +14,7 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Voice RAG · MSMARCO-XI",
+  title: "RAGinGOA - 3PIXLE",
   description:
     "Speak a question in English or Hindi: transcribed, retrieved from a hybrid index over MSMARCO-XI, answered with citations and a grounding check — core path under 200 ms.",
 };
