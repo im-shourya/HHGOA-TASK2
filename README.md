@@ -14,7 +14,7 @@ Built for HH Goa 2026 Shortlisting Task 2 by **Team 3PIXLE** · `#RAGInGoa`
 
 | | |
 | --- | --- |
-| **Live demo** | _add the deploy URL here_ |
+| **Live demo** | [hhgoa-task2.onrender.com](https://hhgoa-task2.onrender.com) |
 | **Corpus** | `ai4bharat/MSMARCO-XI` validation split — 5,979 passages (2,990 `eng_Latn` / 2,989 `hin_Deva`), 155 labelled eval queries |
 | **Index** | 18,416 chunks from five chunking strategies, 512-d static embeddings + BM25+ |
 | **Latency** | in-process P50 7.87 / P70 9.62 / P100 40.71 ms · **over real HTTP** P50 6.04 / P70 7.00 / P100 58.30 ms · both 100% inside 200 ms |
