@@ -123,7 +123,7 @@ export default function Page() {
         {history.length > 1 && (
           <section className="card p-4">
             <h2 className="text-sm font-medium">Recent requests</h2>
-            <ul className="mt-2 divide-y divide-ink-800 text-xs">
+            <ul className="mt-2 divide-y divide-ink-300 text-xs">
               {history.map((item) => (
                 <li
                   key={item.request_id}
@@ -132,12 +132,12 @@ export default function Page() {
                   <button
                     type="button"
                     onClick={() => setResponse(item)}
-                    className="text-ink-300 hover:text-ink-100 min-w-0 flex-1 truncate text-left"
+                    className="text-ink-900 hover:text-ink-700 min-w-0 flex-1 truncate text-left"
                   >
                     {item.transcript ?? item.query}
                   </button>
                   <span className="tag">{item.verdict}</span>
-                  <span className="text-ink-400 w-16 text-right font-mono">
+                  <span className="text-ink-800 w-16 text-right font-mono">
                     {item.core_latency_ms.toFixed(1)} ms
                   </span>
                 </li>

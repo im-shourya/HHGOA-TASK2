@@ -34,7 +34,7 @@ export function GuardTrail({ guards }: { guards: GuardFinding[] }) {
     <section className="card p-5">
       <h2 className="text-sm font-medium">
         Guardrails{" "}
-        <span className="text-ink-400 font-mono text-xs">
+        <span className="text-ink-700 font-mono text-xs">
           ({guards.filter((g) => g.passed).length}/{guards.length} passed)
         </span>
       </h2>
@@ -51,10 +51,10 @@ export function GuardTrail({ guards }: { guards: GuardFinding[] }) {
               >
                 {severity.icon}
               </span>
-              <span className="text-ink-200 w-36 shrink-0 font-mono">
+              <span className="text-ink-900 w-36 shrink-0 font-mono">
                 {guard.guard}
               </span>
-              <span className="text-ink-400 flex-1">
+              <span className="text-ink-700 flex-1">
                 {guard.reason || DESCRIPTIONS[guard.guard] || "checked"}
               </span>
             </li>

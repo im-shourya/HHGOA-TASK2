@@ -22,7 +22,7 @@ export function LatencyWaterfall({ trace }: { trace: Trace }) {
     <section className="card p-5">
       <header className="flex items-baseline justify-between">
         <h2 className="text-sm font-medium">Stage latency</h2>
-        <span className="text-ink-400 font-mono text-xs">
+        <span className="text-ink-700 font-mono text-xs">
           core {ms(coreTotal)} / budget {trace.budget_ms} ms
         </span>
       </header>
@@ -36,12 +36,12 @@ export function LatencyWaterfall({ trace }: { trace: Trace }) {
               <div className="flex items-center gap-2">
                 <span
                   className={`w-28 shrink-0 font-mono ${
-                    outOfBudget ? "text-ink-400" : "text-ink-200"
+                    outOfBudget ? "text-ink-700" : "text-ink-900"
                   }`}
                 >
                   {span.name}
                 </span>
-                <div className="bg-ink-800 relative h-3 flex-1 overflow-hidden rounded">
+                <div className="bg-ink-300 relative h-3 flex-1 overflow-hidden rounded">
                   <div
                     className={`bar-grow h-full rounded ${stageColor(span.name)} ${
                       outOfBudget ? "opacity-50" : ""
@@ -49,7 +49,7 @@ export function LatencyWaterfall({ trace }: { trace: Trace }) {
                     style={{ width: `${Math.min(width, 100)}%` }}
                   />
                 </div>
-                <span className="text-ink-300 w-16 shrink-0 text-right font-mono">
+                <span className="text-ink-800 w-16 shrink-0 text-right font-mono">
                   {span.ms.toFixed(2)}
                 </span>
                 {span.status !== "ok" && (
@@ -72,8 +72,8 @@ export function LatencyWaterfall({ trace }: { trace: Trace }) {
         })}
       </ul>
 
-      <p className="text-ink-500 mt-4 text-xs">
-        <span className="text-ink-400">transcribe</span> is a network call to the
+      <p className="text-ink-800 mt-4 text-xs">
+        <span className="text-ink-900 font-bold">transcribe</span> is a network call to the
         speech provider and sits outside the {trace.budget_ms} ms core budget; every
         other stage is counted.
       </p>
