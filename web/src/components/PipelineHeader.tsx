@@ -25,9 +25,25 @@ export function PipelineHeader({ health }: { health: Health | null }) {
             height={120}
             className="rounded-xl border-2 border-goa-dark shadow-[4px_4px_0px_#ffe500]"
           />
-          <div className="text-center sm:text-left">
-            <h1 className="text-4xl sm:text-5xl font-bold text-goa-yellow drop-shadow-[2px_2px_0px_#0a3d24]">
-              HACKER HOUSE <span className="text-goa-pink font-sans">गोवा</span>
+          <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
+            <h1 className="relative inline-flex items-center justify-center select-none mb-1">
+              <span className="sr-only">Hacker House Goa</span>
+              <Image
+                src="/Hacker_house.png"
+                alt="Hacker House"
+                width={1148}
+                height={237}
+                className="h-10 sm:h-14 md:h-16 w-auto object-contain"
+                priority
+              />
+              <Image
+                src="/goa_hindi.svg"
+                alt="Goa"
+                width={181}
+                height={180}
+                className="absolute h-12 sm:h-[72px] md:h-20 w-auto object-contain left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                priority
+              />
             </h1>
             <p className="text-goa-cream mt-2 max-w-xl text-lg font-mono">
               Voice RAG over MSMARCO-XI.
